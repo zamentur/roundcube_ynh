@@ -1,18 +1,19 @@
 #!/bin/bash
+APP=${!#}
 
-domain=$(sudo yunohost app setting roundcube domain)
-path=$(sudo yunohost app setting roundcube path)
+domain=$(sudo yunohost app setting $APP domain)
+path=$(sudo yunohost app setting $APP path)
 
 deskey=$(dd if=/dev/urandom bs=1 count=200 2> /dev/null | tr -c -d '[A-Za-z0-9]' | sed -n 's/\(.\{24\}\).*/\1/p')
-db_user=roundcube
-db_pwd=$(sudo yunohost app setting roundcube mysqlpwd)
+db_user=$APP
+db_pwd=$(sudo yunohost app setting $APP mysqlpwd)
 db_file=../sources/SQL/mysql/$(ls -tr -1 ../sources/SQL/mysql | head -1)
 
 mysql -u $db_user -p$db_pwd $db_user < $db_file
 
 mysql -u $db_user -p$db_pwd $db_user < ../sources/plugins/automatic_addressbook/SQL/mysql.initial.sql
 
-final_path=/var/www/roundcube
+final_path=/var/www/$APP
 sudo mkdir -p $final_path
 sudo cp -a ../sources/* $final_path
 sudo cp ../conf/main.inc.php $final_path/config/
@@ -52,10 +53,10 @@ sudo chown -R www-data: $final_path
 
 sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
 sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/roundcube.conf
+sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$APP.conf
 
-sed -i "s@NAMETOCHANGE@roundcube@g" ../conf/php-fpm.conf
-finalphpconf=/etc/php5/fpm/pool.d/roundcube.conf
+sed -i "s@NAMETOCHANGE@$APP@g" ../conf/php-fpm.conf
+finalphpconf=/etc/php5/fpm/pool.d/$APP.conf
 sudo cp ../conf/php-fpm.conf $finalphpconf
 sudo chown root: $finalphpconf
 sudo chmod 644 $finalphpconf

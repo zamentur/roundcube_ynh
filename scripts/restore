@@ -1,36 +1,35 @@
 #!/bin/bash
 # This restore script is adapted to Yunohost >=2.4
+APP=${!#}
 
 # The parameter $1 is the backup directory location dedicated to the app
 backup_dir=$1
 
-# The parameter $2 is the id of the app instance ex: ynhexample__2
-app=$2
 
 # Get old parameter of the app
-domain=$(sudo yunohost app setting $app domain)
-path=$(sudo yunohost app setting $app path)
+domain=$(sudo yunohost app setting $APP domain)
+path=$(sudo yunohost app setting $APP path)
 
 # Check domain/path availability
-sudo yunohost app checkurl $domain$path -a $app
+sudo yunohost app checkurl $domain$path -a $APP
 if [[ ! $? -eq 0 ]]; then
     echo "There is already an app on this URL : $domain$path" | sudo tee /dev/stderr
     exit 1
 fi
 
-final_path=/var/www/$app
+final_path=/var/www/$APP
 if [ -d $final_path ]; then
     echo "There is already a directory: $final_path " | sudo tee /dev/stderr
     exit 1
 fi
 
-conf=/etc/nginx/conf.d/$domain.d/$app.conf
+conf=/etc/nginx/conf.d/$domain.d/$APP.conf
 if [ -f $conf ]; then
     echo "There is already a nginx conf file at this path: $conf " | sudo tee /dev/stderr
     exit 1
 fi
 
-phpconf=/etc/php5/fpm/pool.d/$app.conf
+phpconf=/etc/php5/fpm/pool.d/$APP.conf
 if [ -f $phpconf ]; then
     echo "There is already a php conf file at this path: $conf " | sudo tee /dev/stderr
     exit 1
@@ -40,12 +39,12 @@ fi
 sudo cp -a "${backup_dir}/sources" $final_path
 
 . /usr/share/yunohost/apps/helpers
-db_pwd=$(sudo yunohost app setting $app mysqlpwd)
-db_user=$app
+db_pwd=$(sudo yunohost app setting $APP mysqlpwd)
+db_user=$APP
 sudo yunohost app initdb $db_user -p $db_pwd
-#ynh_mysql_create_db $app $db_user $db_pwd
-sudo su -c "mysql -u $db_user -p$db_pwd $app < ${backup_dir}/dump.sql"
-sudo sed -i -e "s/'mysql:\/\/[^:]*:[^@]*@localhost/[^']*'/'mysql:\/\/$app:$db_pwd@localhost/$app'/g" $final_path/config/db.inc.php
+#ynh_mysql_create_db $APP $db_user $db_pwd
+sudo su -c "mysql -u $db_user -p$db_pwd $APP < ${backup_dir}/dump.sql"
+sudo sed -i -e "s/'mysql:\/\/[^:]*:[^@]*@localhost/[^']*'/'mysql:\/\/$APP:$db_pwd@localhost/$APP'/g" $final_path/config/db.inc.php
 
 # Set permissions
 sudo chown -R www-data:www-data $final_path

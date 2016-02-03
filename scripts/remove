@@ -1,14 +1,15 @@
 #!/bin/bash
+APP=${!#}
 
-db_user=roundcube
-db_name=roundcube
+db_user=$APP
+db_name=$APP
 root_pwd=$(sudo cat /etc/yunohost/mysql)
-domain=$(sudo yunohost app setting roundcube domain)
+domain=$(sudo yunohost app setting $APP domain)
 
 mysql -u root -p$root_pwd -e "DROP DATABASE $db_name ; DROP USER $db_user@localhost ;"
-sudo rm -rf /var/www/roundcube
-sudo rm -f /etc/nginx/conf.d/$domain.d/roundcube.conf
-sudo rm -f /etc/php5/fpm/pool.d/roundcube.conf
+sudo rm -rf /var/www/$APP
+sudo rm -f /etc/nginx/conf.d/$domain.d/$APP.conf
+sudo rm -f /etc/php5/fpm/pool.d/$APP.conf
 
 sudo service php5-fpm restart
 sudo service nginx reload

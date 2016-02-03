@@ -1,24 +1,23 @@
 #!/bin/bash
+APP=${!#}
 
 # The parameter $1 is the backup directory location dedicated to the app
 # which will be compressed afterward
 backup_dir=$1
 
-# The parameter $2 is theid of the app instance
-app=$2
 
-domain=$(sudo yunohost app setting $app domain)
-path=$(sudo yunohost app setting $app path)
+domain=$(sudo yunohost app setting $APP domain)
+path=$(sudo yunohost app setting $APP path)
 
 # Copy the app files
-final_path=/var/www/$app
+final_path=/var/www/$APP
 sudo mkdir -p ${backup_dir}/var/www
 sudo cp -a $final_path "${backup_dir}/sources"
 
 # Copy the conf files
-sudo cp -a /etc/php5/fpm/pool.d/$app.conf $backup_dir/php-fpm.conf
-sudo cp -a /etc/nginx/conf.d/$domain.d/$app.conf $backup_dir/nginx.conf
+sudo cp -a /etc/php5/fpm/pool.d/$APP.conf $backup_dir/php-fpm.conf
+sudo cp -a /etc/nginx/conf.d/$domain.d/$APP.conf $backup_dir/nginx.conf
 
 # Backup db
-db_pwd=$(sudo yunohost app setting $app mysqlpwd)
-sudo su -c "mysqldump -u $app -p"$db_pwd" --no-create-db $app > ${backup_dir}/dump.sql"
+db_pwd=$(sudo yunohost app setting $APP mysqlpwd)
+sudo su -c "mysqldump -u $APP -p"$db_pwd" --no-create-db $APP > ${backup_dir}/dump.sql"
